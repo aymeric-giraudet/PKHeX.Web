@@ -1,0 +1,39 @@
+﻿@using Services
+@inject HttpClient Http
+@inject Services.SpriteService SpriteService
+
+@if (!Initialized)
+{
+    <div>Loading...</div>
+}
+else
+{
+    <Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Sorry, there's nothing at this address.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
+}
+
+@code {
+    private bool Initialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var items = await Http.GetFromJsonAsync<IReadOnlyDictionary<string,
+        string>>("https://raw.githubusercontent.com/msikma/pokesprite/master/data/item-map.json");
+
+        var pokemon = await Http.GetStringAsync("https://raw.githubusercontent.com/msikma/pokesprite/master/data/pokemon.json");
+
+        SpriteService.Initialize(items, pokemon);
+
+        Initialized = true;
+    }
+}
