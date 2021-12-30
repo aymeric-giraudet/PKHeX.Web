@@ -398,4 +398,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Project specific
-wwwroot/assets
+wwwroot/assets/*
+!wwwroot/assets/.gitkeep
+.vercel

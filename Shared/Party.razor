@@ -1,0 +1,55 @@
+@using PKHeX.Core;
+@inject Services.SaveFileService SaveFileService
+@inject Services.SpriteService SpriteService
+@inject Services.PokemonEditorService PokemonEditorService;
+
+<div class="grid" style="display: grid;grid-template-columns: repeat(2, 1fr);width:fit-content;">
+    <div @onclick="@(e => ChangePokemon(PartyList[0]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[0])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[0].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <div @onclick="@(e => ChangePokemon(PartyList[1]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[1])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[1].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <div @onclick="@(e => ChangePokemon(PartyList[2]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[2])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[2].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <div @onclick="@(e => ChangePokemon(PartyList[3]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[3])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[3].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <div @onclick="@(e => ChangePokemon(PartyList[4]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[4])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[4].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <div @onclick="@(e => ChangePokemon(PartyList[5]))" style="border: 1px solid black;position:relative;"><img
+            src="@SpriteService.GetPokemon(PartyList[5])" alt="" /><img
+            src="@SpriteService.GetItem(PartyList[5].SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+    </div>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.CloudUpload" class="mx-auto"
+        @onclick="SetPokemon">
+        Set to party1
+    </MudButton>
+</div>
+
+@code {
+    private IList<PKM> PartyList;
+
+    protected override void OnInitialized()
+    {
+        PartyList = SaveFileService.SaveFile.PartyData;
+    }
+
+    protected void SetPokemon()
+    {
+        SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon, 0);
+        PartyList = SaveFileService.SaveFile.PartyData;
+    }
+
+    protected void ChangePokemon(PKM pkm)
+    {
+        PokemonEditorService.Pokemon = pkm;
+    }
+}

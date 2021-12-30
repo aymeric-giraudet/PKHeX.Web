@@ -1,6 +1,7 @@
 ﻿@using PKHeX.Core
 @inherits LayoutComponentBase
 @inject Services.SaveFileService SaveFileService
+@inject Services.PokemonEditorService PokemonEditorService
 @inject ISnackbar Snackbar
 
 <MudThemeProvider Theme="MyCustomTheme" />
@@ -66,7 +67,7 @@
             return;
             } *@
 
-        var saveFile = SaveUtil.GetVariantSAV(memoryStream.ToArray());
+        FileUtil.TryGetSAV(memoryStream.ToArray(), out var saveFile);
 
         if (saveFile == null)
         {
@@ -76,6 +77,9 @@
         else
         {
             SaveFileService.SaveFile = saveFile;
+            var pokemon = PKMConverter.GetBlank(saveFile.Generation, saveFile.Version);
+            pokemon.Species = 1;
+            PokemonEditorService.Pokemon = pokemon;
         }
     }
 }

@@ -1,6 +1,5 @@
 @using System.IO
 @inject Services.SaveFileService SaveFileService
-@inject Services.SpriteService SpriteService
 @inject IJSRuntime JS
 @page "/"
 
@@ -17,7 +16,7 @@ else
     <MudItem xs="12" sm="5">
       <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
         <MudTabPanel Text="Main">
-          <MudText>Content One</MudText>
+          <MainPokemon />
         </MudTabPanel>
         <MudTabPanel Text="Met">
           <MudText>Content Two</MudText>
@@ -39,24 +38,22 @@ else
           <MudText>Content One</MudText>
         </MudTabPanel>
         <MudTabPanel Text="Party">
-          <ul>
-            @foreach (var pokemon in SaveFileService.SaveFile.PartyData)
-              {
-                <li><img src="@SpriteService.GetPokemon(pokemon)" alt="" />@pokemon.Nickname : Lvl.
-                  @pokemon.CurrentLevel <img src="@SpriteService.GetItem(pokemon.SpriteItem)" alt="" /></li>
-              }
-            </ul>
-          </MudTabPanel>
-          <MudTabPanel Text="Other">
-            <MudText>Content Three</MudText>
-          </MudTabPanel>
-          <MudTabPanel Text="SAV">
-            <MudText>Content Disabled</MudText>
-          </MudTabPanel>
-        </MudTabs>
-      </MudItem>
-    </MudGrid>
-  </MudContainer>
+          <Party />
+        </MudTabPanel>
+        <MudTabPanel Text="Other">
+          <MudText>Content Three</MudText>
+        </MudTabPanel>
+        <MudTabPanel Text="SAV">
+          <MudText>Content Disabled</MudText>
+        </MudTabPanel>
+      </MudTabs>
+    </MudItem>
+  </MudGrid>
+</MudContainer>
+  <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.CloudUpload" class="mx-auto"
+  @onclick="DownloadFileFromStream">
+    Download save file
+  </MudButton>
 }
 
 @code {

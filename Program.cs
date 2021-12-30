@@ -12,6 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<PKHeX.Web.Services.SaveFileService>();
 builder.Services.AddSingleton<PKHeX.Web.Services.SpriteService>();
+builder.Services.AddSingleton<PKHeX.Web.Services.PokemonEditorService>();
 
 await builder.Build().RunAsync();
 

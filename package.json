@@ -1,0 +1,23 @@
+{
+  "name": "pkhex.web",
+  "version": "1.0.0",
+  "description": "Scripts for PKHeX.Web",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "postinstall": "cp degit.json wwwroot/assets && degit github:msikma/pokesprite wwwroot/assets -f && node scripts/processAssets.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aymeric-giraudet/PKHeX.Web.git"
+  },
+  "author": "Aymeric Giraudet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aymeric-giraudet/PKHeX.Web/issues"
+  },
+  "homepage": "https://github.com/aymeric-giraudet/PKHeX.Web#readme",
+  "dependencies": {
+    "degit": "^2.8.4"
+  }
+}

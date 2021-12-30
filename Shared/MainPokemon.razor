@@ -1,0 +1,20 @@
+@inject Services.PokemonEditorService PokemonEditorService
+@inject Services.SpriteService SpriteService
+
+@if (PokemonEditorService.Pokemon != null)
+{
+  <div style="border: 1px solid black;position:relative;height:58px;width:68px;"><img
+    src="@SpriteService.GetPokemon(PokemonEditorService.Pokemon)" alt="" /><img
+    src="@SpriteService.GetItem(PokemonEditorService.Pokemon.SpriteItem)" alt=""
+    style="position:absolute;bottom:0;right:0;" />
+</div>
+  <MudTextField @bind-Value="PokemonEditorService.Pokemon.Nickname" Label="Standard" Variant="Variant.Text">
+  </MudTextField>
+}
+
+@code {
+  protected override void OnInitialized()
+  {
+    PokemonEditorService.OnChange += StateHasChanged;
+  }
+}

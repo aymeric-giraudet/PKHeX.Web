@@ -1,0 +1,6 @@
+[
+  {
+    "action": "remove",
+    "files": ["data/legacy", "data/item-legacy.json", "data/item-unlinked.json", "data/meta.json", "docs", "icons", "items-outline", "misc", "pokemon-gen7x", "resources", "scripts", ".gitignore", "contributors.md", "index.js", "license.md", "package.json", "readme.md", "yarn.lock"]
+    }
+]

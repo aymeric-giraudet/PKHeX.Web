@@ -27,10 +27,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var items = await Http.GetFromJsonAsync<IReadOnlyDictionary<string,
-        string>>("https://raw.githubusercontent.com/msikma/pokesprite/master/data/item-map.json");
+        var items = await Http.GetFromJsonAsync<IReadOnlyDictionary<string, string>>("assets/data/item-map.json");
 
-        var pokemon = await Http.GetStringAsync("https://raw.githubusercontent.com/msikma/pokesprite/master/data/pokemon.json");
+        var pokemon = await Http.GetFromJsonAsync<IReadOnlyDictionary<string, PokemonSprite>>("assets/data/pokemon.json");
 
         SpriteService.Initialize(items, pokemon);
 
