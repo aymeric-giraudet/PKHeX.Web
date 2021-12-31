@@ -1,0 +1,13 @@
+@using PKHeX.Core
+@inject Services.SpriteService SpriteService
+
+@if (Pokemon != null && Pokemon.Species != 0)
+{
+  <img src="@SpriteService.GetPokemon(Pokemon)" alt="" /><img src="@SpriteService.GetItem(Pokemon.SpriteItem)" alt=""
+  style="position:absolute;bottom:0;right:0;" />
+}
+
+@code {
+  [Parameter]
+  public PKM? Pokemon { get; set; }
+}

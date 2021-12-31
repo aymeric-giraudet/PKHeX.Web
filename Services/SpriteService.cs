@@ -18,20 +18,20 @@ namespace PKHeX.Web.Services
     {
       if (spriteId == 0) return "";
 
-      var key = $"item_{spriteId.ToString().PadLeft(4, '0')}";
+      var key = $"item_{spriteId:0000}";
       return $"assets/items/{Items[key]}.png";
     }
 
     public string GetPokemon(PKM pkm)
     {
-      string key = pkm.Species.ToString().PadLeft(3, '0');
+      string key = pkm.Species.ToString("000");
       return $"assets/pokemon-gen8/regular/{Pokemon[key].Slug}.png";
     }
   }
 
   public class PokemonSprite
   {
-    public string Slug { get; set; }
+    public string Slug { get; set; } = "";
     public bool HasFemaleForm { get; set; }
   }
 }
