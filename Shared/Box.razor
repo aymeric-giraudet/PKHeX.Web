@@ -1,29 +1,11 @@
-@using PKHeX.Core;
 @inject Services.SaveFileService SaveFileService
 @inject Services.PokemonEditorService PokemonEditorService;
 
-<table>
-  @for (var rowId = 0; rowId < (Cells / RowSize); rowId++)
-  {
-    <tr>
-      @for (var cellId = 0; cellId < RowSize; cellId++)
-      {
-        int idx = rowId * RowSize + cellId;
-        <td>
-          <PokemonWithItem Pokemon="BoxList.ElementAtOrDefault(idx)"></PokemonWithItem>
-        </td>
-      }
-    </tr>
-  }
-</table>
+<PokemonGrid PokemonList="SaveFileService.SaveFile.GetBoxData(0)" RowSize="6" Cells="30" />
 
 @code {
-  private IList<PKM> BoxList;
-  private int RowSize = 6;
-  private int Cells = 30;
-
-  protected override void OnInitialized()
+  protected void SetPokemon()
   {
-    BoxList = SaveFileService.SaveFile.GetBoxData(0);
+    SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon, 0);
   }
 }

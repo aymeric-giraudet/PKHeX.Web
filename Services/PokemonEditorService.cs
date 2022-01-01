@@ -4,6 +4,7 @@ namespace PKHeX.Web.Services
 {
   public class PokemonEditorService
   {
+    public bool IsSetLeft { get; set; } = true;
     private PKM _pokemon;
 
     public PKM Pokemon

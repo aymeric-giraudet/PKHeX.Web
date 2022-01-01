@@ -1,39 +1,18 @@
-@using PKHeX.Core;
+@using PKHeX.Core
 @inject Services.SaveFileService SaveFileService
-@inject Services.PokemonEditorService PokemonEditorService;
+@inject Services.PokemonEditorService PokemonEditorService
 
-<table>
-    @for (var rowId = 0; rowId < (Cells / RowSize); rowId++)
-    {
-        <tr>
-            @for (var cellId = 0; cellId < RowSize; cellId++) {
-                int idx = rowId * RowSize + cellId;
-                <td @onclick="@(e => ChangePokemon(idx))"><PokemonWithItem Pokemon="PartyList.ElementAtOrDefault(idx)"></PokemonWithItem></td>
-            }
-        </tr>
-    }
-</table>
+<PokemonGrid PokemonList="SaveFileService.SaveFile.PartyData" RowSize="2" Cells="6" SetPokemon="SetPokemon" />
 
 @code {
-    private IList<PKM> PartyList;
-    private int RowSize = 2;
-    private int Cells = 6;
-
     protected override void OnInitialized()
     {
-        PartyList = SaveFileService.SaveFile.PartyData;
+        SaveFileService.OnChange += StateHasChanged;
     }
 
-    protected void SetPokemon()
+    protected void SetPokemon(int index)
     {
-        SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon, 0);
-        PartyList = SaveFileService.SaveFile.PartyData;
-    }
-
-    protected void ChangePokemon(int idx)
-    {
-        if(idx >= PartyList.Count) return;
-
-        PokemonEditorService.Pokemon = PartyList[idx];
+        SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon.Clone(), index);
+        SaveFileService.NotifyDataChanged();
     }
 }
