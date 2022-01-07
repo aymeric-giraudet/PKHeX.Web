@@ -1,6 +1,6 @@
-@using PKHeX.Core
 @inject Services.SaveFileService SaveFileService
 @inject Services.PokemonEditorService PokemonEditorService
+@implements IDisposable
 
 <PokemonGrid PokemonList="SaveFileService.SaveFile.PartyData" RowSize="2" Cells="6" SetPokemon="SetPokemon" />
 
@@ -12,7 +12,12 @@
 
     protected void SetPokemon(int index)
     {
-        SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon.Clone(), index);
+        SaveFileService.SaveFile.SetPartySlotAtIndex(PokemonEditorService.Pokemon, index);
         SaveFileService.NotifyDataChanged();
+    }
+
+    public void Dispose()
+    {
+        SaveFileService.OnChange -= StateHasChanged;
     }
 }

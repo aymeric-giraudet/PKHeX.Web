@@ -1,0 +1,62 @@
+@inject Services.SaveFileService SaveFileService
+@inject Services.PokemonEditorService PokemonEditorService
+@implements IDisposable
+
+@{
+  var saveFile = SaveFileService.SaveFile;
+  var currentBox = saveFile.CurrentBox;
+  var slotCount = saveFile.BoxSlotCount;
+}
+
+<div class="d-flex flex-col">
+  <MudIconButton @onclick="GoBack" Icon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Filled"
+    Color="Color.Primary" Size="Size.Large" Class="ma-2" />
+  <MudSelect T="int" @bind-Value="@saveFile.CurrentBox" Variant="Variant.Outlined"
+    ToStringFunc="@(e => saveFile.GetBoxName(e))" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense
+    Class="my-auto">
+    @for (var boxIndex = 0; boxIndex < saveFile.BoxCount; boxIndex++)
+    {
+      <MudSelectItem Value="boxIndex" />
+    }
+  </MudSelect>
+  <MudIconButton @onclick="GoForward" Icon="@Icons.Material.Filled.ArrowForward" Variant="Variant.Filled"
+    Color="Color.Primary" Size="Size.Large" Class="ma-2" />
+</div>
+
+<PokemonGrid PokemonList="saveFile.GetBoxData(currentBox)" RowSize="slotCount / 5" Cells="slotCount"
+  SetPokemon="SetPokemon" />
+
+@code {
+  protected override void OnInitialized()
+  {
+    SaveFileService.OnChange += StateHasChanged;
+  }
+
+  protected void GoBack()
+  {
+    var currentBox = SaveFileService.SaveFile.CurrentBox;
+    var boxCount = SaveFileService.SaveFile.BoxCount;
+
+    SaveFileService.SaveFile.CurrentBox = (currentBox + boxCount - 1) % boxCount;
+  }
+
+  protected void GoForward()
+  {
+    var currentBox = SaveFileService.SaveFile.CurrentBox;
+    var boxCount = SaveFileService.SaveFile.BoxCount;
+
+    SaveFileService.SaveFile.CurrentBox = (currentBox + 1) % boxCount;
+  }
+
+  protected void SetPokemon(int index)
+  {
+    var currentBox = SaveFileService.SaveFile.CurrentBox;
+    SaveFileService.SaveFile.SetBoxSlotAtIndex(PokemonEditorService.Pokemon, currentBox, index);
+    SaveFileService.NotifyDataChanged();
+  }
+
+  public void Dispose()
+  {
+    SaveFileService.OnChange -= StateHasChanged;
+  }
+}

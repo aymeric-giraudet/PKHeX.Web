@@ -18,6 +18,30 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
 
+    <style>
+      .loader {
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        place-items: center;
+      }
+      .loader > img {
+        height: 25%;
+        width: 25%;
+        animation: spin infinite 1s ease-in-out;
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
     <script>
       async function downloadFileFromStream(fileName, contentStreamReference) {
         const arrayBuffer = await contentStreamReference.arrayBuffer();
@@ -45,7 +69,12 @@
   </head>
 
   <body>
-    <div id="app">Loading...</div>
+    <div id="app">
+      <div class="loader">
+        <img src="ball.svg" />
+        <h3>Loading...</h3>
+      </div>
+    </div>
 
     <div id="blazor-error-ui">
       An unhandled error has occurred.

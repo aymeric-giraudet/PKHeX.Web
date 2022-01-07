@@ -1,0 +1,36 @@
+@inject Services.PokemonEditorService PokemonEditorService;
+
+<div style="--cols: @RowSize; --rows: @(Cells / RowSize)" class="pokegrid mx-auto">
+  @for (var i = 0; i < Cells; i++)
+  {
+    var index = i;
+    var pokemon = PokemonList.ElementAtOrDefault(index);
+    <div @onclick="@(() => ChangePokemon(pokemon, index))">
+      <PokemonWithItem Pokemon="pokemon" />
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public IList<PKM> PokemonList { get; set; } = new PKM[] { };
+  [Parameter]
+  public int RowSize { get; set; }
+  [Parameter]
+  public int Cells { get; set; }
+  [Parameter]
+  public Action<int> SetPokemon { get; set; } = (i) => throw new MissingMemberException();
+
+  protected void ChangePokemon(PKM? pokemon, int index)
+  {
+    if (PokemonEditorService.IsSetLeft)
+    {
+      if (pokemon == null || pokemon.Species == 0) return;
+      PokemonEditorService.Pokemon = pokemon.Clone();
+    }
+    else
+    {
+      SetPokemon(index);
+    }
+  }
+}

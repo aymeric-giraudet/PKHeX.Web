@@ -3,8 +3,11 @@
 
 @if (Pokemon != null && Pokemon.Species != 0)
 {
-  <img src="@SpriteService.GetPokemon(Pokemon)" alt="" /><img src="@SpriteService.GetItem(Pokemon.SpriteItem)" alt=""
-  style="position:absolute;bottom:0;right:0;" />
+  <img src="@SpriteService.GetPokemon(Pokemon)" alt="" />
+  @if (Pokemon.SpriteItem != 0)
+  {
+    <img src="@SpriteService.GetItem(Pokemon.SpriteItem)" alt="" style="position:absolute;bottom:0;right:0;" />
+  }
 }
 
 @code {

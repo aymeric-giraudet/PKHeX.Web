@@ -10,8 +10,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
-    <PackageReference Include="MudBlazor" Version="6.0.2" />
-    <PackageReference Include="PKHeX.Core" Version="21.11.27" />
+    <PackageReference Include="MudBlazor" Version="6.0.4" />
+    <PackageReference Include="PKHeX.Core" Version="22.1.1" />
   </ItemGroup>
 
   <ItemGroup>

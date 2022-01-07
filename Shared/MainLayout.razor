@@ -1,36 +1,56 @@
-﻿@using PKHeX.Core
+﻿@using System.IO
+
 @inherits LayoutComponentBase
+@implements IDisposable
+
 @inject Services.SaveFileService SaveFileService
 @inject Services.PokemonEditorService PokemonEditorService
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JS
 
 <MudThemeProvider Theme="MyCustomTheme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
+    <MudAppBar Elevation="1" Dense>
         <MudText Typo="Typo.h5" Class="ml-3">PKHeX.Web</MudText>
 
         <MudSpacer />
 
         @if (SaveFileService.SaveFile == null)
         {
-            <InputFile id="fileInput" OnChange="UploadSave" hidden accept=".dsv, .sav, .pk7" />
+            <InputFile id="fileInput" OnChange="UploadSave" hidden />
 
-            <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.CloudUpload"
-            class="mx-auto" for="fileInput">
-                Upload a save file
+            <MudButton Disabled="@isLoading" HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" class="mx-auto"
+            for="fileInput">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Color="Color.Primary" Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">Processing save</MudText>
+                }
+                else
+                {
+                    <MudText>Upload a save file</MudText>
+                }
             </MudButton>
         }
         else
         {
-            <MudText Typo="Typo.h6" Class="ml-3">@SaveFileService.SaveFile.Metadata.BAKName.Replace(".bak", "")</MudText>
+            <MudText Typo="Typo.h6">@SaveFileService.SaveFile.Metadata.BAKName.Replace(".bak", "")</MudText>
         }
 
         <MudSpacer />
 
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Dark" AnchorOrigin="Origin.BottomCenter">
+            <MudMenuItem OnClick="ExportSAV">
+                Export SAV
+            </MudMenuItem>
+            <MudMenuItem OnClick="OpenAbout">
+                About
+            </MudMenuItem>
+        </MudMenu>
     </MudAppBar>
     <MudMainContent>
         @Body
@@ -38,6 +58,8 @@
 </MudLayout>
 
 @code {
+    private bool isLoading = false;
+
     protected override void OnInitialized()
     {
         SaveFileService.OnChange += StateHasChanged;
@@ -55,17 +77,10 @@
 
     private async void UploadSave(InputFileChangeEventArgs e)
     {
+        isLoading = true;
 
         using var memoryStream = new MemoryStream();
         await e.File.OpenReadStream(e.File.Size).CopyToAsync(memoryStream);
-
-        @* if (e.File.Name.EndsWith(".pk7"))
-            {
-            FileUtil.TryGetPKM(memoryStream.ToArray(), out var pk, "pk7");
-            var forms = FormConverter.GetFormList(pk.Species, GameInfo.Strings.types, GameInfo.Strings.forms,
-            Array.Empty<string>(), 8);
-            return;
-            } *@
 
         FileUtil.TryGetSAV(memoryStream.ToArray(), out var saveFile);
 
@@ -77,9 +92,36 @@
         else
         {
             SaveFileService.SaveFile = saveFile;
-            var pokemon = PKMConverter.GetBlank(saveFile.Generation, saveFile.Version);
-            pokemon.Species = 1;
-            PokemonEditorService.Pokemon = pokemon;
+            var blankPokemon = PKMConverter.GetBlank(saveFile.Generation, saveFile.Version);
+            EntityTemplates.TemplateFields(blankPokemon, saveFile);
+            PokemonEditorService.Pokemon = blankPokemon;
         }
+
+        isLoading = false;
+    }
+
+    private async Task ExportSAV()
+    {
+        var saveFile = SaveFileService.SaveFile;
+        var extension = saveFile.Metadata.GetSuggestedExtension();
+        var flags = saveFile.Metadata.GetSuggestedFlags(extension);
+
+        var fileStream = new MemoryStream(saveFile.Write(flags));
+        var fileName = saveFile.Metadata.BAKName.Replace(".bak", extension).Remove(0, 1);
+
+        using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+
+    private void OpenAbout()
+    {
+        var options = new DialogOptions { CloseButton = true };
+        DialogService.Show<About>("About", options);
+    }
+
+    public void Dispose()
+    {
+        SaveFileService.OnChange -= StateHasChanged;
     }
 }

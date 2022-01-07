@@ -1,14 +1,4 @@
-﻿@using Services
-@inject HttpClient Http
-@inject Services.SpriteService SpriteService
-
-@if (!Initialized)
-{
-    <div>Loading more...</div>
-}
-else
-{
-    <Router AppAssembly="@typeof(App).Assembly">
+﻿<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -20,19 +10,3 @@ else
         </LayoutView>
     </NotFound>
 </Router>
-}
-
-@code {
-    private bool Initialized = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var items = await Http.GetFromJsonAsync<IReadOnlyDictionary<string, string>>("assets/data/item-map.json");
-
-        var pokemon = await Http.GetFromJsonAsync<IReadOnlyDictionary<string, PokemonSprite>>("assets/data/pokemon.json");
-
-        SpriteService.Initialize(items, pokemon);
-
-        Initialized = true;
-    }
-}

@@ -1,17 +1,21 @@
+using System.Net.Http.Json;
 using PKHeX.Core;
 
 namespace PKHeX.Web.Services
 {
   public class SpriteService
   {
-    public IReadOnlyDictionary<string, string> Items { get; internal set; } = new Dictionary<string, string>();
+    public IReadOnlyDictionary<string, string>? Items { get; internal set; }
 
-    public IReadOnlyDictionary<string, PokemonSprite> Pokemon { get; internal set; } = new Dictionary<string, PokemonSprite>();
+    public IReadOnlyDictionary<string, PokemonSprite>? Pokemon { get; internal set; }
 
-    public void Initialize(IReadOnlyDictionary<string, string> items, IReadOnlyDictionary<string, PokemonSprite> pokemon)
+    public async Task InitializeServiceAsync(HttpClient httpClient)
     {
-      Items = items;
-      Pokemon = pokemon;
+      var itemsTask = httpClient.GetFromJsonAsync<IReadOnlyDictionary<string, string>>("assets/data/item-map.json");
+      var pokemonsTask = httpClient.GetFromJsonAsync<IReadOnlyDictionary<string, PokemonSprite>>("assets/data/pokemon.json");
+
+      Items = await itemsTask;
+      Pokemon = await pokemonsTask;
     }
 
     public string GetItem(int spriteId)
@@ -19,19 +23,26 @@ namespace PKHeX.Web.Services
       if (spriteId == 0) return "";
 
       var key = $"item_{spriteId:0000}";
-      return $"assets/items/{Items[key]}.png";
+      return $"assets/items/{Items![key]}.png";
     }
 
     public string GetPokemon(PKM pkm)
     {
       string key = pkm.Species.ToString("000");
-      return $"assets/pokemon-gen8/regular/{Pokemon[key].Slug}.png";
+      var spriteInfo = Pokemon![key];
+
+      string shinyOrRegular = pkm.IsShiny ? "shiny" : "regular";
+      string femaleSprite = spriteInfo.HasFemaleForm ? "female/" : "";
+
+      return $"assets/pokemon-gen8/{shinyOrRegular}/{femaleSprite}{spriteInfo.Slug}.png";
+    }
+
+    public string GetPokemonBySpeciesId(int speciesId)
+    {
+      string key = speciesId.ToString("000");
+      return $"assets/pokemon-gen8/regular/{Pokemon![key].Slug}.png";
     }
   }
 
-  public class PokemonSprite
-  {
-    public string Slug { get; set; } = "";
-    public bool HasFemaleForm { get; set; }
-  }
+  public record PokemonSprite(string Slug, bool HasFemaleForm);
 }

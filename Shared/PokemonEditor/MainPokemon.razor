@@ -1,0 +1,153 @@
+@inject Services.PokemonEditorService PokemonEditorService
+@inject Services.SpriteService SpriteService
+@inject Services.SaveFileService SaveFileService
+@implements IDisposable
+
+@{
+  var pkm = PokemonEditorService.Pokemon;
+  var saveFile = SaveFileService.SaveFile;
+  var dataSource = SaveFileService.FilteredGameDataSource;
+}
+
+@if (pkm != null)
+{
+  <div style="border: 1px solid black;
+  position: relative;
+  width: 68px;
+  height: 56px;">
+  <PokemonWithItem Pokemon="pkm" />
+</div>
+  <div class="d-flex flex-col">
+    <MudCheckBox Checked="@pkm.IsShiny" CheckedChanged="@((bool value) => pkm.SetShiny())" Color="Color.Warning"
+    CheckedIcon="@Icons.Material.Filled.Star" UncheckedIcon="@Icons.Material.Filled.StarOutline"
+    Disabled="@pkm.IsShiny" />
+    @if (saveFile.Generation >= 3)
+    {
+      <MudNumericField @bind-Value="pkm.PID" Label="PID" Variant="Variant.Text" />
+      <MudButton Variant="Variant.Filled" Size="Size.Small" @onclick="@(() => pkm.SetPIDGender(pkm.Gender))">Reroll
+      </MudButton>
+    }
+  </div>
+
+  <MudAutocomplete Margin="Margin.Dense" Dense="true" T="int" Value="pkm.Species" SearchFunc="@Search"
+  ToStringFunc="@(e=> Util.GetSpeciesList("en")[e])" MaxItems="8" ValueChanged="SpeciesChanged" Label="Species">
+    <ItemTemplate Context="idx">
+      <img src="@SpriteService.GetPokemonBySpeciesId(idx)" alt="" /> @Util.GetSpeciesList("en")[idx]
+    </ItemTemplate>
+  </MudAutocomplete>
+
+  <div class="d-flex flex-col">
+    <MudCheckBox Checked="@pkm.IsNicknamed" CheckedChanged="@((bool value) => SetIsNicknamed(value))" />
+    <MudTextField Value="pkm.Nickname" ValueChanged="@((string value) => SetNickname(value))" Immediate="true"
+    Label="Nickname" Variant="Variant.Text" MaxLength="saveFile.NickLength" Counter="saveFile.NickLength" />
+  </div>
+
+  <div class="d-flex flex-col">
+    <MudNumericField @bind-Value="pkm.EXP" Immediate Label="EXP" Variant="Variant.Text" Class="mr-2" />
+    <MudNumericField @bind-Value="pkm.CurrentLevel" Immediate Label="LEVEL" Variant="Variant.Text" />
+  </div>
+
+  @if (saveFile.Generation >= 3)
+  {
+    <MudAutocomplete Margin="Margin.Dense" Dense="true" T="int" Value="pkm.Nature" SearchFunc="@SearchNatures"
+  ToStringFunc="@(e=> Util.GetNaturesList("en")[e])" MaxItems="null" ValueChanged="NatureChanged" Label="Nature" />
+  }
+
+  @if (saveFile.Generation >= 2)
+  {
+    <MudAutocomplete Margin="Margin.Dense" Dense="true" T="int" Value="pkm.HeldItem" SearchFunc="@SearchItems"
+  ToStringFunc="@(e=> Util.GetItemsList("en")[e])" MaxItems="10" ValueChanged="ItemsChanged" Label="Item" />
+  }
+
+  @if (saveFile.Generation >= 3)
+  {
+    <MudSelect T="int" @bind-Value="pkm.Ability" Label="Ability" ToStringFunc="@(e => Util.GetAbilitiesList("en")[e])"
+  AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense>
+  @foreach (var nature in dataSource.GetAbilityList(PokemonEditorService.Pokemon).DistinctBy(x =>
+     x.Value))
+      {
+        <MudSelectItem Value="nature.Value" />
+      }
+      </MudSelect>
+  }
+}
+
+@code {
+  private PKM pkm;
+
+  protected override void OnInitialized()
+  {
+    PokemonEditorService.OnChange += StateHasChanged;
+    PokemonEditorService.OnChange += SetPokemon;
+    pkm = PokemonEditorService.Pokemon;
+  }
+
+  private void SetPokemon()
+  {
+    pkm = PokemonEditorService.Pokemon;
+  }
+
+  private Task<IEnumerable<int>> Search(string value)
+  {
+    var species = SaveFileService.FilteredGameDataSource.Species.Skip(1).Where(x => x.Text.Contains(value,
+    StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Text).Select(x => x.Value);
+    return Task.FromResult(species);
+  }
+
+  private void SpeciesChanged(int speciesId)
+  {
+    pkm.Species = speciesId;
+    pkm.IsNicknamed = false;
+    pkm.RefreshAbility(0);
+    pkm.ClearNickname();
+  }
+
+  private Task<IEnumerable<int>> SearchNatures(string value)
+  {
+    var natures = Util.GetNaturesList("en").Select((name, index) => new
+    {
+      Name = name,
+      Index = index
+    }).Where(x => x.Name.Contains(value,
+    StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Name).Select(x => x.Index);
+    return Task.FromResult(natures);
+  }
+
+  private void NatureChanged(int natureId)
+  {
+    pkm.SetNature(natureId);
+  }
+
+  private Task<IEnumerable<int>> SearchItems(string value)
+  {
+    var items = SaveFileService.FilteredGameDataSource.Items.Where(x => x.Text.Contains(value,
+    StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Text).Select(x => x.Value);
+    return Task.FromResult(items);
+  }
+
+  private void ItemsChanged(int itemId)
+  {
+    pkm.ApplyHeldItem(itemId, SaveFileService.SaveFile.Generation);
+  }
+
+  private void SetNickname(string value)
+  {
+    pkm.IsNicknamed = true;
+    pkm.Nickname = value;
+  }
+
+  private void SetIsNicknamed(bool value)
+  {
+    pkm.IsNicknamed = value;
+    if (value == false)
+    {
+      pkm.ClearNickname();
+    }
+  }
+
+  public void Dispose()
+  {
+    PokemonEditorService.OnChange -= StateHasChanged;
+    PokemonEditorService.OnChange -= SetPokemon;
+  }
+}

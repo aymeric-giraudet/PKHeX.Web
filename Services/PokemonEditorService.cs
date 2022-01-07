@@ -5,6 +5,7 @@ namespace PKHeX.Web.Services
   public class PokemonEditorService
   {
     public bool IsSetLeft { get; set; } = true;
+
     private PKM _pokemon;
 
     public PKM Pokemon
@@ -20,7 +21,7 @@ namespace PKHeX.Web.Services
       }
     }
 
-    public event Action OnChange;
+    public event Action? OnChange;
 
     private void NotifyDataChanged() => OnChange?.Invoke();
   }

@@ -1,0 +1,15 @@
+.pokegrid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 68px);
+  grid-template-rows: repeat(var(--rows), 56px);
+  grid-column-gap: 1px;
+  grid-row-gap: 1px;
+  background-color: black;
+  border: 1px solid black;
+  width: fit-content;
+}
+
+.pokegrid > div {
+  background-color: white;
+  position: relative;
+}
