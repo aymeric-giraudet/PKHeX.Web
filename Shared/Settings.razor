@@ -1,0 +1,49 @@
+@inject ILocalStorageService LocalStorage
+@inject SaveFileService SaveFileService
+@inject PokemonEditorService PokemonEditorService
+
+<MudDialog>
+  <DialogContent>
+    <MudSelect T="ComboItem" @bind-Value="BlankVersion" Label="Blank version" AnchorOrigin="Origin.BottomCenter"
+      ToStringFunc="@(e => e.Text)" Margin="Margin.Dense" Dense>
+      @foreach (var version in GameVersions)
+      {
+        <MudSelectItem Value="version" />
+      }
+    </MudSelect>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Submit">Save</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+  IReadOnlyList<ComboItem> GameVersions = GameInfo.VersionDataSource;
+
+  ComboItem BlankVersion;
+
+  protected async override Task OnInitializedAsync()
+  {
+    var storedVersion = await LocalStorage.GetItemAsync<GameVersion>("BlankVersion");
+    BlankVersion = GameVersions.First(x => x.Value == Convert.ToInt32(storedVersion));
+  }
+
+  protected async void Submit()
+  {
+    var gameVersion = (GameVersion) BlankVersion.Value;
+
+    if (await LocalStorage.GetItemAsync<GameVersion>("BlankVersion") != gameVersion) {
+      SaveFileService.SaveFile = SaveUtil.GetBlankSAV(gameVersion, "PKHeX");
+      PokemonEditorService.Pokemon = SaveFileService.SaveFile.LoadTemplate();
+    }
+
+    await LocalStorage.SetItemAsync("BlankVersion", gameVersion);
+
+    MudDialog.Close(DialogResult.Ok(true));
+  }
+
+  void Cancel() => MudDialog.Cancel();
+}

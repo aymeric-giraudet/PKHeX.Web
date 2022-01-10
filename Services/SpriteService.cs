@@ -32,7 +32,7 @@ namespace PKHeX.Web.Services
       var spriteInfo = Pokemon![key];
 
       string shinyOrRegular = pkm.IsShiny ? "shiny" : "regular";
-      string femaleSprite = spriteInfo.HasFemaleForm ? "female/" : "";
+      string femaleSprite = spriteInfo.HasFemaleForm && pkm.GetSaneGender() == (int)Gender.Female ? "female/" : "";
 
       return $"assets/pokemon-gen8/{shinyOrRegular}/{femaleSprite}{spriteInfo.Slug}.png";
     }

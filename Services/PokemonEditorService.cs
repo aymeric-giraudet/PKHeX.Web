@@ -23,6 +23,6 @@ namespace PKHeX.Web.Services
 
     public event Action? OnChange;
 
-    private void NotifyDataChanged() => OnChange?.Invoke();
+    public void NotifyDataChanged() => OnChange?.Invoke();
   }
 }

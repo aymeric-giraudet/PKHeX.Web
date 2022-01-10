@@ -13,39 +13,33 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
+<InputFile id="fileInput" OnChange="UploadSave" hidden />
+
 <MudLayout>
     <MudAppBar Elevation="1" Dense>
         <MudText Typo="Typo.h5" Class="ml-3">PKHeX.Web</MudText>
 
-        <MudSpacer />
-
-        @if (SaveFileService.SaveFile == null)
-        {
-            <InputFile id="fileInput" OnChange="UploadSave" hidden />
-
-            <MudButton Disabled="@isLoading" HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary" class="mx-auto"
-            for="fileInput">
-                @if (isLoading)
-                {
-                    <MudProgressCircular Color="Color.Primary" Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-                    <MudText Class="ms-2">Processing save</MudText>
-                }
-                else
-                {
-                    <MudText>Upload a save file</MudText>
-                }
-            </MudButton>
-        }
-        else
-        {
-            <MudText Typo="Typo.h6">@SaveFileService.SaveFile.Metadata.BAKName.Replace(".bak", "")</MudText>
-        }
-
-        <MudSpacer />
-
-        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Dark" AnchorOrigin="Origin.BottomCenter">
+        <MudMenu Label="File" Dense="true" Color="Color.Inherit" AnchorOrigin="Origin.BottomCenter" Class="ml-16">
+            <MudMenuItem OnClick="PromptFile">
+                Open file
+            </MudMenuItem>
             <MudMenuItem OnClick="ExportSAV">
                 Export SAV
+            </MudMenuItem>
+            <MudMenuItem OnClick="ExportPKM">
+                Export PKM
+            </MudMenuItem>
+        </MudMenu>
+
+        <MudSpacer />
+
+        <MudText Typo="Typo.h6">@SaveFileService.SaveFile.Metadata.BAKName.Replace(".bak", "")</MudText>
+
+        <MudSpacer />
+
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" AnchorOrigin="Origin.BottomCenter">
+            <MudMenuItem OnClick="OpenSettings">
+                Settings
             </MudMenuItem>
             <MudMenuItem OnClick="OpenAbout">
                 About
@@ -75,6 +69,11 @@
         }
     };
 
+    private async void PromptFile()
+    {
+        await JS.InvokeVoidAsync("elementClick", "fileInput");
+    }
+
     private async void UploadSave(InputFileChangeEventArgs e)
     {
         isLoading = true;
@@ -84,20 +83,65 @@
 
         FileUtil.TryGetSAV(memoryStream.ToArray(), out var saveFile);
 
-        if (saveFile == null)
-        {
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-            Snackbar.Add("The save file could not be recognized.", MudBlazor.Severity.Error);
-        }
-        else
-        {
-            SaveFileService.SaveFile = saveFile;
-            var blankPokemon = PKMConverter.GetBlank(saveFile.Generation, saveFile.Version);
-            EntityTemplates.TemplateFields(blankPokemon, saveFile);
-            PokemonEditorService.Pokemon = blankPokemon;
-        }
+        OpenFile(memoryStream.ToArray(), e.File.Name, Path.GetExtension(e.File.Name));
 
         isLoading = false;
+    }
+
+    private void OpenFile(byte[] input, string path, string ext)
+    {
+        var obj = FileUtil.GetSupportedFile(input, ext, SaveFileService.SaveFile);
+        if (obj != null && LoadFile(obj, path))
+            return;
+
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        //TODO: more specific message in case of pokémon
+        Snackbar.Add("Could not open file", MudBlazor.Severity.Error);
+    }
+
+    private bool LoadFile(object? input, string path)
+    {
+        if (input == null)
+            return false;
+
+        switch (input)
+        {
+            case PKM pk: return OpenPKM(pk);
+            case SaveFile s: return OpenSAV(s, path);
+                @* case IPokeGroup b: return OpenGroup(b);
+                    case MysteryGift g: return OpenMysteryGift(g, path);
+                    case IEnumerable<byte[]> pkms: return OpenPCBoxBin(pkms);
+                    case IEncounterConvertible enc: return OpenPKM(enc.ConvertToPKM(C_SAV.SAV));
+
+                    case SAV3GCMemoryCard gc:
+                    if (!CheckGCMemoryCard(gc, path))
+                    return true;
+                    var mcsav = SaveUtil.GetVariantSAV(gc);
+                    if (mcsav is null)
+                    return false;
+                    return OpenSAV(mcsav, path); *@
+        }
+        return false;
+    }
+
+    private bool OpenPKM(PKM pk)
+    {
+        var tmp = PKMConverter.ConvertToType(pk, SaveFileService.SaveFile.PKMType, out string c);
+        Console.WriteLine(c);
+        if (tmp == null)
+            return false;
+        SaveFileService.SaveFile.AdaptPKM(tmp);
+        PokemonEditorService.Pokemon = tmp;
+        return true;
+    }
+
+    private bool OpenSAV(SaveFile sav, string path)
+    {
+        sav.Metadata.SetExtraInfo(path);
+        SaveFileService.SaveFile = sav;
+        PokemonEditorService.Pokemon = sav.LoadTemplate();
+
+        return true;
     }
 
     private async Task ExportSAV()
@@ -112,6 +156,23 @@
         using var streamRef = new DotNetStreamReference(stream: fileStream);
 
         await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+
+    private async Task ExportPKM()
+    {
+        var pokemon = PokemonEditorService.Pokemon;
+
+        var fileStream = new MemoryStream(pokemon.Data);
+        var fileName = pokemon.FileName;
+
+        using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+
+    private void OpenSettings()
+    {
+        DialogService.Show<Settings>("Settings");
     }
 
     private void OpenAbout()

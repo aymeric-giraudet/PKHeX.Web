@@ -15,15 +15,10 @@ namespace PKHeX.Web.Services
       set
       {
         _saveFile = value;
-        FilteredGameDataSource = new FilteredGameDataSource(value, GameInfo.Sources);
-        BoxEdit = new BoxEdit(SaveFile);
+        GameInfo.FilteredSources = new FilteredGameDataSource(value, GameInfo.Sources);
         NotifyDataChanged();
       }
     }
-
-    public FilteredGameDataSource FilteredGameDataSource { get; internal set; }
-
-    public BoxEdit BoxEdit { get; internal set; }
 
     public event Action? OnChange;
 

@@ -1,0 +1,79 @@
+@inject PokemonEditorService PokemonEditorService
+@inject SaveFileService SaveFileService
+
+@{
+  var pkm = PokemonEditorService.Pokemon;
+  var saveFile = SaveFileService.SaveFile;
+  var gen = saveFile.Generation;
+}
+
+@if (gen >= 3)
+{
+  var abilityList = GameInfo.FilteredSources.GetAbilityList(pkm);
+
+  <MudSelect T="int" Value="@GetIndex()" ValueChanged="SetAbility" Label="Ability"
+  ToStringFunc="@(e => abilityList[e].Text)" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense>
+  @foreach (var (ability, index) in abilityList.Select((ability, index) => (ability, index)))
+    {
+      <MudSelectItem Value="index" />
+    }
+    </MudSelect>
+}
+
+@code {
+  protected override void OnInitialized()
+  {
+    PokemonEditorService.OnChange += StateHasChanged;
+  }
+
+  protected void SetAbility(int abilityIndex)
+  {
+    PokemonEditorService.Pokemon.SetAbilityIndex(abilityIndex);
+  }
+
+  protected int GetIndex()
+  {
+    var pkm = PokemonEditorService.Pokemon;
+    var abilityList = GameInfo.FilteredSources.GetAbilityList(pkm);
+    var abilityCount = abilityList.Count;
+
+    return pkm switch
+    {
+      PK3 pk3 => pk3.AbilityBit && abilityCount > 1 ? 1 : 0,
+      PK4 pk4 => LoadAbility4(pk4, abilityCount),
+      PK5 pk5 => pk5.HiddenAbility ? abilityCount - 1 : LoadAbility4(pk5, abilityCount),
+      _ => GetAbilityIndex6(pkm, abilityCount)
+    };
+  }
+
+  private int LoadAbility4(PKM pk, int abilityCount)
+  {
+    var index = GetAbilityIndex4(pk);
+    return Math.Min(abilityCount, index);
+  }
+
+  private int GetAbilityIndex4(PKM pk)
+  {
+    var pi = pk.PersonalInfo;
+    int abilityIndex = pi.GetAbilityIndex(pk.Ability);
+    if (abilityIndex < 0)
+      return 0;
+    if (abilityIndex >= 2)
+      return 2;
+
+    var abils = pi.Abilities;
+    if (abils[0] == abils[1])
+      return pk.PIDAbility;
+    return abilityIndex;
+  }
+
+  private int GetAbilityIndex6(PKM pk, int abilityCount)
+  {
+    var bitNumber = pk.AbilityNumber;
+    int abilityIndex = AbilityVerifier.IsValidAbilityBits(bitNumber) ? bitNumber >> 1 : 0;
+    if (abilityIndex >= abilityCount)
+      abilityIndex = abilityCount - 1;
+
+    return abilityIndex;
+  }
+}

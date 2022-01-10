@@ -6,7 +6,6 @@
 @{
   var pkm = PokemonEditorService.Pokemon;
   var saveFile = SaveFileService.SaveFile;
-  var dataSource = SaveFileService.FilteredGameDataSource;
 }
 
 @if (pkm != null)
@@ -23,7 +22,8 @@
     Disabled="@pkm.IsShiny" />
     @if (saveFile.Generation >= 3)
     {
-      <MudNumericField @bind-Value="pkm.PID" Label="PID" Variant="Variant.Text" />
+      //TODO: disabled for now
+      <MudTextField Value="@pkm.PID.ToString("X")" Label="PID" Variant="Variant.Text" Disabled />
       <MudButton Variant="Variant.Filled" Size="Size.Small" @onclick="@(() => pkm.SetPIDGender(pkm.Gender))">Reroll
       </MudButton>
     }
@@ -53,23 +53,35 @@
   ToStringFunc="@(e=> Util.GetNaturesList("en")[e])" MaxItems="null" ValueChanged="NatureChanged" Label="Nature" />
   }
 
+  @if (saveFile.Generation >= 8)
+  {
+    var pk8 = (G8PKM)pkm;
+    <MudAutocomplete Margin="Margin.Dense" Dense="true" T="int" Value="pk8.StatNature" SearchFunc="@SearchNatures"
+  ToStringFunc="@(e=> Util.GetNaturesList("en")[e])" MaxItems="null" ValueChanged="e => pkm.SetNature(e)"
+  Label="Stat Nature" />
+  }
+
+  // use HasFormSelection ?
+  @if (pkm.PersonalInfo.HasForms)
+  {
+    var list = FormConverter.GetFormList(pkm.Species, GameInfo.Strings.types, GameInfo.Strings.forms, new[] { "-", "M",
+"F"}, saveFile.Generation);
+    <MudSelect T="int" Value="@pkm.Form" ValueChanged="SetForm" Label="Form" ToStringFunc="@(e => list[e])"
+  AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense>
+  @foreach (var (form, index) in list.Select((form, index) => (form, index)))
+      {
+        <MudSelectItem Value="index" />
+      }
+      </MudSelect>
+  }
+
   @if (saveFile.Generation >= 2)
   {
     <MudAutocomplete Margin="Margin.Dense" Dense="true" T="int" Value="pkm.HeldItem" SearchFunc="@SearchItems"
   ToStringFunc="@(e=> Util.GetItemsList("en")[e])" MaxItems="10" ValueChanged="ItemsChanged" Label="Item" />
   }
 
-  @if (saveFile.Generation >= 3)
-  {
-    <MudSelect T="int" @bind-Value="pkm.Ability" Label="Ability" ToStringFunc="@(e => Util.GetAbilitiesList("en")[e])"
-  AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense>
-  @foreach (var nature in dataSource.GetAbilityList(PokemonEditorService.Pokemon).DistinctBy(x =>
-     x.Value))
-      {
-        <MudSelectItem Value="nature.Value" />
-      }
-      </MudSelect>
-  }
+  <AbilityPicker />
 }
 
 @code {
@@ -89,7 +101,7 @@
 
   private Task<IEnumerable<int>> Search(string value)
   {
-    var species = SaveFileService.FilteredGameDataSource.Species.Skip(1).Where(x => x.Text.Contains(value,
+    var species = GameInfo.SpeciesDataSource.Skip(1).Where(x => x.Text.Contains(value,
     StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Text).Select(x => x.Value);
     return Task.FromResult(species);
   }
@@ -100,6 +112,13 @@
     pkm.IsNicknamed = false;
     pkm.RefreshAbility(0);
     pkm.ClearNickname();
+    PokemonEditorService.NotifyDataChanged();
+  }
+
+  private void SetForm(int formId)
+  {
+    pkm.SetForm(formId);
+    PokemonEditorService.NotifyDataChanged();
   }
 
   private Task<IEnumerable<int>> SearchNatures(string value)
@@ -115,13 +134,18 @@
 
   private void NatureChanged(int natureId)
   {
+    if (SaveFileService.SaveFile.Generation >= 8)
+    {
+      pkm.Nature = natureId;
+      return;
+    }
     pkm.SetNature(natureId);
   }
 
   private Task<IEnumerable<int>> SearchItems(string value)
   {
-    var items = SaveFileService.FilteredGameDataSource.Items.Where(x => x.Text.Contains(value,
-    StringComparison.InvariantCultureIgnoreCase)).OrderBy(x => x.Text).Select(x => x.Value);
+    var items = GameInfo.ItemDataSource.Where(x => x.Text.Contains(value,
+    StringComparison.InvariantCultureIgnoreCase)).Select(x => x.Value);
     return Task.FromResult(items);
   }
 
