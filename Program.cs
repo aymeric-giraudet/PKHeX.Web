@@ -15,9 +15,9 @@ builder.Services.AddScoped(sp => httpClient);
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddMudServices();
-builder.Services.AddSingleton<SaveFileService>();
+builder.Services.AddSingleton<SavEdit>();
 builder.Services.AddSingleton<SpriteService>();
-builder.Services.AddSingleton<PokemonEditorService>();
+builder.Services.AddSingleton<PkmEdit>();
 
 var host = builder.Build();
 
@@ -26,8 +26,8 @@ var spriteService = host.Services.GetRequiredService<SpriteService>();
 await spriteService.InitializeServiceAsync(httpClient);
 
 // Loading settings from localStorage and initializing blank SAV/PKM
-var saveFileService = host.Services.GetRequiredService<SaveFileService>();
-var pokemonEditorService = host.Services.GetRequiredService<PokemonEditorService>();
+var savEdit = host.Services.GetRequiredService<SavEdit>();
+var pkmEdit = host.Services.GetRequiredService<PkmEdit>();
 var localStorageService = host.Services.GetRequiredService<ILocalStorageService>();
 
 var storedGameVersion = await localStorageService.GetItemAsync<GameVersion>("BlankVersion");
@@ -36,8 +36,7 @@ if (storedGameVersion == 0)
   storedGameVersion = GameVersion.BD;
   await localStorageService.SetItemAsync("BlankVersion", storedGameVersion);
 }
-saveFileService.SaveFile = SaveUtil.GetBlankSAV(storedGameVersion, "PKHeX");
-pokemonEditorService.Pokemon = saveFileService.SaveFile.LoadTemplate();
+savEdit.SAV = SaveUtil.GetBlankSAV(storedGameVersion, "PKHeX");
+pkmEdit.PKM = savEdit.SAV.LoadTemplate();
 
 await host.RunAsync();
-

@@ -1,9 +1,9 @@
-@inject Services.SaveFileService SaveFileService
-@inject Services.PokemonEditorService PokemonEditorService
+@inject SavEdit SE
+@inject PkmEdit PE
 @implements IDisposable
 
 @{
-  var saveFile = SaveFileService.SaveFile;
+  var saveFile = SE.SAV;
   var currentBox = saveFile.CurrentBox;
   var slotCount = saveFile.BoxSlotCount;
 }
@@ -29,34 +29,34 @@
 @code {
   protected override void OnInitialized()
   {
-    SaveFileService.OnChange += StateHasChanged;
+    SE.OnChange += StateHasChanged;
   }
 
   protected void GoBack()
   {
-    var currentBox = SaveFileService.SaveFile.CurrentBox;
-    var boxCount = SaveFileService.SaveFile.BoxCount;
+    var currentBox = SE.SAV.CurrentBox;
+    var boxCount = SE.SAV.BoxCount;
 
-    SaveFileService.SaveFile.CurrentBox = (currentBox + boxCount - 1) % boxCount;
+    SE.SAV.CurrentBox = (currentBox + boxCount - 1) % boxCount;
   }
 
   protected void GoForward()
   {
-    var currentBox = SaveFileService.SaveFile.CurrentBox;
-    var boxCount = SaveFileService.SaveFile.BoxCount;
+    var currentBox = SE.SAV.CurrentBox;
+    var boxCount = SE.SAV.BoxCount;
 
-    SaveFileService.SaveFile.CurrentBox = (currentBox + 1) % boxCount;
+    SE.SAV.CurrentBox = (currentBox + 1) % boxCount;
   }
 
   protected void SetPokemon(int index)
   {
-    var currentBox = SaveFileService.SaveFile.CurrentBox;
-    SaveFileService.SaveFile.SetBoxSlotAtIndex(PokemonEditorService.Pokemon, currentBox, index);
-    SaveFileService.NotifyDataChanged();
+    var currentBox = SE.SAV.CurrentBox;
+    SE.SAV.SetBoxSlotAtIndex(PE.PKM, currentBox, index);
+    SE.NotifyDataChanged();
   }
 
   public void Dispose()
   {
-    SaveFileService.OnChange -= StateHasChanged;
+    SE.OnChange -= StateHasChanged;
   }
 }

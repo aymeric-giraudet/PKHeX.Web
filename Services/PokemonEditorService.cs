@@ -2,21 +2,21 @@ using PKHeX.Core;
 
 namespace PKHeX.Web.Services
 {
-  public class PokemonEditorService
+  public class PkmEdit
   {
     public bool IsSetLeft { get; set; } = true;
 
-    private PKM _pokemon;
+    private PKM _PKM;
 
-    public PKM Pokemon
+    public PKM PKM
     {
       get
       {
-        return _pokemon;
+        return _PKM;
       }
       set
       {
-        _pokemon = value;
+        _PKM = value;
         NotifyDataChanged();
       }
     }

@@ -2,19 +2,19 @@ using PKHeX.Core;
 
 namespace PKHeX.Web.Services
 {
-  public class SaveFileService
+  public class SavEdit
   {
-    private SaveFile _saveFile;
+    private SaveFile _SAV;
 
-    public SaveFile SaveFile
+    public SaveFile SAV
     {
       get
       {
-        return _saveFile;
+        return _SAV;
       }
       set
       {
-        _saveFile = value;
+        _SAV = value;
         GameInfo.FilteredSources = new FilteredGameDataSource(value, GameInfo.Sources);
         NotifyDataChanged();
       }

@@ -1,19 +1,15 @@
-@inject Services.SaveFileService SaveFileService
-@inject Services.PokemonEditorService PokemonEditorService
+@inject SavEdit SE
+@inject PkmEdit PE
 @page "/"
 
-@{
-  var saveFile = SaveFileService.SaveFile;
-}
-
-@if (saveFile == null)
+@if (SE.SAV == null)
 {
   <PageTitle>PKHeX.Web</PageTitle>
   <h1>Please upload a save file.</h1>
 }
 else
 {
-  <PageTitle>@SaveFileService.SaveFile.Metadata.BAKName.Replace(".bak", "")</PageTitle>
+  <PageTitle>@SE.SAV.Metadata.FileName</PageTitle>
   <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Large">
     <MudGrid Justify="Justify.Center">
       <MudItem xs="12" sm="5">
@@ -21,7 +17,7 @@ else
           <MudTabPanel Text="Main">
             <MainPokemon />
           </MudTabPanel>
-          @if (saveFile.Generation >= 3)
+          @if (SE.SAV.Generation >= 3)
           {
             <MudTabPanel Text="Met">
               <MudText>Content Two</MudText>
@@ -39,8 +35,8 @@ else
         </MudTabs>
       </MudItem>
 
-      <MudIconButton @onclick="(e => PokemonEditorService.IsSetLeft = !PokemonEditorService.IsSetLeft)"
-      Icon="@(PokemonEditorService.IsSetLeft ? Icons.Material.Filled.ArrowBack : Icons.Material.Filled.ArrowForward)"
+      <MudIconButton @onclick="(e => PE.IsSetLeft = !PE.IsSetLeft)"
+      Icon="@(PE.IsSetLeft ? Icons.Material.Filled.ArrowBack : Icons.Material.Filled.ArrowForward)"
       Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="ma-2" />
 
       <MudItem xs="12" sm="6">
@@ -66,6 +62,6 @@ else
 @code {
   protected override void OnInitialized()
   {
-    SaveFileService.OnChange += StateHasChanged;
+    SE.OnChange += StateHasChanged;
   }
 }

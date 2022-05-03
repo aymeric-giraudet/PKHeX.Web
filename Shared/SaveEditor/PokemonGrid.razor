@@ -1,4 +1,4 @@
-@inject Services.PokemonEditorService PokemonEditorService;
+@inject PkmEdit PE;
 
 <div style="--cols: @RowSize; --rows: @(Cells / RowSize)" class="pokegrid mx-auto">
   @for (var i = 0; i < Cells; i++)
@@ -23,10 +23,10 @@
 
   protected void ChangePokemon(PKM? pokemon, int index)
   {
-    if (PokemonEditorService.IsSetLeft)
+    if (PE.IsSetLeft)
     {
       if (pokemon == null || pokemon.Species == 0) return;
-      PokemonEditorService.Pokemon = pokemon.Clone();
+      PE.PKM = pokemon.Clone();
     }
     else
     {

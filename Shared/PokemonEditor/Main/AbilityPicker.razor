@@ -1,15 +1,9 @@
-@inject PokemonEditorService PokemonEditorService
-@inject SaveFileService SaveFileService
+@inject PkmEdit PE
+@inject SavEdit SE
 
-@{
-  var pkm = PokemonEditorService.Pokemon;
-  var saveFile = SaveFileService.SaveFile;
-  var gen = saveFile.Generation;
-}
-
-@if (gen >= 3)
+@if (SE.SAV.Generation >= 3)
 {
-  var abilityList = GameInfo.FilteredSources.GetAbilityList(pkm);
+  var abilityList = GameInfo.FilteredSources.GetAbilityList(PE.PKM);
 
   <MudSelect T="int" Value="@GetIndex()" ValueChanged="SetAbility" Label="Ability"
   ToStringFunc="@(e => abilityList[e].Text)" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" Dense>
@@ -23,26 +17,26 @@
 @code {
   protected override void OnInitialized()
   {
-    PokemonEditorService.OnChange += StateHasChanged;
+    PE.OnChange += StateHasChanged;
   }
 
   protected void SetAbility(int abilityIndex)
   {
-    PokemonEditorService.Pokemon.SetAbilityIndex(abilityIndex);
+    PE.PKM.SetAbilityIndex(abilityIndex);
+    PE.NotifyDataChanged();
   }
 
   protected int GetIndex()
   {
-    var pkm = PokemonEditorService.Pokemon;
-    var abilityList = GameInfo.FilteredSources.GetAbilityList(pkm);
+    var abilityList = GameInfo.FilteredSources.GetAbilityList(PE.PKM);
     var abilityCount = abilityList.Count;
 
-    return pkm switch
+    return PE.PKM switch
     {
-      PK3 pk3 => pk3.AbilityBit && abilityCount > 1 ? 1 : 0,
-      PK4 pk4 => LoadAbility4(pk4, abilityCount),
+      G3PKM pk3 => pk3.AbilityBit && abilityCount > 1 ? 1 : 0,
+      G4PKM pk4 => LoadAbility4(pk4, abilityCount),
       PK5 pk5 => pk5.HiddenAbility ? abilityCount - 1 : LoadAbility4(pk5, abilityCount),
-      _ => GetAbilityIndex6(pkm, abilityCount)
+      _ => GetAbilityIndex6(PE.PKM, abilityCount)
     };
   }
 

@@ -1,6 +1,6 @@
 @inject ILocalStorageService LocalStorage
-@inject SaveFileService SaveFileService
-@inject PokemonEditorService PokemonEditorService
+@inject SavEdit SE
+@inject PkmEdit PE
 
 <MudDialog>
   <DialogContent>
@@ -33,11 +33,12 @@
 
   protected async void Submit()
   {
-    var gameVersion = (GameVersion) BlankVersion.Value;
+    var gameVersion = (GameVersion)BlankVersion.Value;
 
-    if (await LocalStorage.GetItemAsync<GameVersion>("BlankVersion") != gameVersion) {
-      SaveFileService.SaveFile = SaveUtil.GetBlankSAV(gameVersion, "PKHeX");
-      PokemonEditorService.Pokemon = SaveFileService.SaveFile.LoadTemplate();
+    if (await LocalStorage.GetItemAsync<GameVersion>("BlankVersion") != gameVersion)
+    {
+      SE.SAV = SaveUtil.GetBlankSAV(gameVersion, "PKHeX");
+      PE.PKM = SE.SAV.LoadTemplate();
     }
 
     await LocalStorage.SetItemAsync("BlankVersion", gameVersion);
